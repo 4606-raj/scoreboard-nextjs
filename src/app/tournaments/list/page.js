@@ -2,41 +2,19 @@
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import useTournamentStore from '@/store/tournamentStore'
+import PageLoader from '@/components/PageLoader'
 
 export default function TournamentsPage() {
 
-    const [data, setData] = useState([])
     const [error, setError] = useState(null)
 
     const router = useRouter()
-  
+    const { tournaments, fetchTournaments, deleteTournament } = useTournamentStore()
+    
     useEffect(() => {
-    const fetchData = async () => {
-      const { data, error } = await supabase
-        .from('tournaments')
-        .select(`
-          id,
-          name,
-          organizer,
-          teams (
-            id,
-            name,
-            score,
-            warning
-          )
-        `)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        console.error(error)
-        setError(error)
-      } else {
-        setData(data)
-      }
-    }
-
-    fetchData()
-  }, [])
+      fetchTournaments()
+    }, [fetchTournaments])
 
 
   if (error) {
@@ -44,24 +22,20 @@ export default function TournamentsPage() {
     return <p className="p-6">Error loading tournaments</p>
   }
 
-  if (!data || data.length === 0) {
-    return <p className="p-6">No tournaments found</p>
+  if (!tournaments || tournaments.length === 0) {
+    return <PageLoader />
   }
 
-  const deleteTournament = async (id) => {
+  const deleteTournamentHandler = async (id) => {
     if (!confirm('Are you sure you want to delete this tournament?')) {
       return
     }
 
-    const { error } = await supabase
-      .from('tournaments')
-      .delete()
-      .eq('id', id)
+    deleteTournament(id).catch(err => {
+      console.error(err)
+      alert('Failed to delete tournament')
+    })
 
-    if (error) {
-      console.error(error)
-      alert('Error deleting tournament')
-    }
   }
 
   return (
@@ -70,13 +44,23 @@ export default function TournamentsPage() {
   <div className="flex items-center justify-between mb-6">
     <h1 className="text-2xl font-bold text-gray-800">Tournaments</h1>
 
-    <button
-      type="button"
-      onClick={() => router.push('/tournaments/create')}
-      className="rounded-full text-white bg-blue-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-blue-500/25 transition hover:bg-blue-500"
-    >
-      + Add New
-    </button>
+    <div className="space-x-4">
+      <button
+        type="button"
+        onClick={() => router.push('/tournaments/create')}
+        className="rounded-full text-white bg-blue-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-blue-500/25 transition hover:bg-blue-500"
+      >
+        + Add New
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {}}
+        className="rounded-full text-white bg-gray-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-gray-500/25 transition hover:bg-gray-500"
+      >
+        Logout
+      </button>
+    </div>
   </div>
 
   {/* Table */}
@@ -96,7 +80,7 @@ export default function TournamentsPage() {
 
       {/* Body */}
       <tbody className="divide-y divide-gray-100">
-        {data.map((tournament, index) => (
+        {tournaments.map((tournament, index) => (
           <tr
             key={tournament.id}
             className="hover:bg-gray-50 transition duration-150"
@@ -147,7 +131,7 @@ export default function TournamentsPage() {
             <td className="px-5 py-4">
               <button
                 type="button"
-                onClick={() => deleteTournament(tournament.id)}
+                onClick={() => deleteTournamentHandler(tournament.id)}
                 className="rounded-full text-white bg-red-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-red-500/25 transition hover:bg-red-500"
               >
                 Delete

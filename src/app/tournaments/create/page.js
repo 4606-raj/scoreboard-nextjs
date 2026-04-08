@@ -3,6 +3,7 @@
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import useTournamentStore from '@/store/tournamentStore'
 
 export default function CreateTournamentPage() {
   const [tournamentName, setTournamentName] = useState("");
@@ -28,29 +29,28 @@ export default function CreateTournamentPage() {
             name: tournamentName,
             organizer: organiserName,
             logo: logo,
+            teams: [
+              {
+                name: team1Name,
+                color: team1Color
+              },
+              {
+                name: team2Name,
+                color: team2Color
+              }
+            ]
         };
 
-        const { data, error } = await supabase.from('tournaments').insert([tournamentData]).select()
-
-        if (error) console.error(error)
-
-        const teamData = [
-            {
-                name: team1Name,
-                color: team1Color,
-                tournament_id: data[0].id,
-            },
-            {
-                name: team2Name,
-                color: team2Color,
-                tournament_id: data[0].id,
-            }
-        ];
+        const createTournament = useTournamentStore.getState().createTournament
         
-        await supabase.from('teams').insert(teamData).select();
+        try {
+          await createTournament(tournamentData)
 
-        router.push(`/tournaments/list`);
-    };
+          router.push(`/tournaments/list`)
+        } catch (err) {
+          console.error(err)
+        }
+      }
 
   return (
     <main className="min-h-screen bg-gray-50">
