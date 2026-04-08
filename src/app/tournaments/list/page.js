@@ -1,5 +1,6 @@
 'use client'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function TournamentsPage() {
@@ -7,6 +8,7 @@ export default function TournamentsPage() {
     const [data, setData] = useState([])
     const [error, setError] = useState(null)
 
+    const router = useRouter()
   
     useEffect(() => {
     const fetchData = async () => {
@@ -64,86 +66,98 @@ export default function TournamentsPage() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-6">
-        Tournaments
-        </h1>
+  {/* Header */}
+  <div className="flex items-center justify-between mb-6">
+    <h1 className="text-2xl font-bold text-gray-800">Tournaments</h1>
 
-        <div className="overflow-x-auto bg-white rounded-xl border border-gray-200 shadow">
-        <table className="min-w-full text-sm">
-            
-            {/* Header */}
-            <thead className="bg-gray-100 text-gray-700 uppercase text-xs tracking-wide">
-            <tr>
-                <th className="px-4 py-3 text-left">#</th>
-                <th className="px-4 py-3 text-left">Tournament</th>
-                <th className="px-4 py-3 text-left">Organizer</th>
-                <th className="px-4 py-3 text-left">Teams</th>
-                <th className="px-4 py-3 text-left">Actions</th>
-            </tr>
-            </thead>
+    <button
+      type="button"
+      onClick={() => router.push('/tournaments/create')}
+      className="rounded-full text-white bg-blue-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-blue-500/25 transition hover:bg-blue-500"
+    >
+      + Add New
+    </button>
+  </div>
 
-            {/* Body */}
-            <tbody className="divide-y divide-gray-200">
-            {data.map((tournament, index) => (
-                <tr
-                key={tournament.id}
-                className="hover:bg-gray-50 transition"
-                >
-                
-                {/* Index */}
-                <td className="px-4 py-4 text-gray-700 font-medium">
-                    {index + 1}
-                </td>
+  {/* Table */}
+  <div className="overflow-hidden bg-white rounded-2xl border border-gray-200 shadow-sm">
+    <table className="min-w-full text-sm">
+      
+      {/* Header */}
+      <thead className="bg-gray-100 text-gray-600 uppercase text-xs tracking-wider">
+        <tr>
+          <th className="px-5 py-3 text-left">#</th>
+          <th className="px-5 py-3 text-left">Tournament</th>
+          <th className="px-5 py-3 text-left">Organizer</th>
+          <th className="px-5 py-3 text-left">Teams</th>
+          <th className="px-5 py-3 text-left">Actions</th>
+        </tr>
+      </thead>
 
-                {/* Tournament */}
-                <td className="px-4 py-4 font-semibold text-gray-900">
-                    {tournament.name}
-                </td>
+      {/* Body */}
+      <tbody className="divide-y divide-gray-100">
+        {data.map((tournament, index) => (
+          <tr
+            key={tournament.id}
+            className="hover:bg-gray-50 transition duration-150"
+          >
+            {/* Index */}
+            <td className="px-5 py-4 font-medium text-gray-700">
+              {index + 1}
+            </td>
 
-                {/* Organizer */}
-                <td className="px-4 py-4 text-gray-700">
-                    {tournament.organizer_name}
-                </td>
+            {/* Tournament */}
+            <td className="px-5 py-4">
+              <p className="font-semibold text-gray-900">
+                {tournament.name}
+              </p>
+            </td>
 
-                {/* Teams */}
-                <td className="px-4 py-4">
-                    <div className="space-y-2">
-                    {tournament.teams?.map((team) => (
-                        <div
-                        key={team.id}
-                        className="flex justify-between items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2"
-                        >
-                        <div>
-                            <p className="font-medium text-gray-900">
-                            {team.name}
-                            </p>
-                            <p className="text-xs text-red-500 font-medium">
-                            Warnings: {team.warning}
-                            </p>
-                        </div>
+            {/* Organizer */}
+            <td className="px-5 py-4 text-gray-600">
+              {tournament.organizer_name}
+            </td>
 
-                        <span className="text-sm font-bold text-blue-600">
-                            {team.score}
-                        </span>
-                        </div>
-                    ))}
+            {/* Teams */}
+            <td className="px-5 py-4">
+              <div className="space-y-2 max-w-xs">
+                {tournament.teams?.map((team) => (
+                  <div
+                    key={team.id}
+                    className="flex justify-between items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 hover:shadow-sm transition"
+                  >
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm">
+                        {team.name}
+                      </p>
+                      <p className="text-xs text-red-500 font-medium">
+                        Warnings: {team.warning}
+                      </p>
                     </div>
-                </td>
 
-                {/* Actions */}
-                <td className="px-4 py-4">
+                    <span className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
+                      {team.score}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </td>
 
-                    <button type="button" className="cursor-pointer bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded" onClick={() => deleteTournament(tournament.id)}>
-                        Delete
-                    </button>
-
-                </td>
-
-                </tr>
-            ))}
-            </tbody>
-        </table>
-        </div>
-    </div>
+            {/* Actions */}
+            <td className="px-5 py-4">
+              <button
+                type="button"
+                onClick={() => deleteTournament(tournament.id)}
+                className="rounded-full text-white bg-red-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-red-500/25 transition hover:bg-red-500"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
     )
 }
