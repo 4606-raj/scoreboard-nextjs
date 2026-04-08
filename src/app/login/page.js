@@ -3,9 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import useAuthStore from '@/store/authStore'
+
 
 export default function Login() {
-
+  
+  const login = useAuthStore.getState().login
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false)
@@ -13,10 +17,6 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log(email, password);
-
-    setLoading(true)
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -29,17 +29,21 @@ export default function Login() {
       return
     }
 
-    // Supabase already stores session for you
-    router.push('/dashboard')
+    await login({
+      user: data.user,
+      token: data.session?.access_token
+    })
+    
+    router.push('/tournaments/list')
   }
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 text-center">
+        <h1 className="text-3xl font-bold mb-2 text-center">
           Sign in
         </h1>
-        <p className="text-gray-600 text-center mb-6">
+        <p className="text-center mb-6">
           Enter your credentials to continue
         </p>
         

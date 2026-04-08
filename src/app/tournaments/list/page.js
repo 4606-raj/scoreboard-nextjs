@@ -1,20 +1,41 @@
+'use client'
 import { supabase } from '@/lib/supabase'
+import { useEffect, useState } from 'react'
 
-export default async function TournamentsPage() {
-  const { data, error } = await supabase
-    .from('tournaments')
-    .select(`
-        id,
-        name,
-        organizer,
-        teams (
+export default function TournamentsPage() {
+
+    const [data, setData] = useState([])
+    const [error, setError] = useState(null)
+
+  
+    useEffect(() => {
+    const fetchData = async () => {
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select(`
+          id,
+          name,
+          organizer,
+          teams (
             id,
             name,
             score,
             warning
-        )
+          )
         `)
-    .order('created_at', { ascending: false })
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error(error)
+        setError(error)
+      } else {
+        setData(data)
+      }
+    }
+
+    fetchData()
+  }, [])
+
 
   if (error) {
     console.error(error)
@@ -23,6 +44,22 @@ export default async function TournamentsPage() {
 
   if (!data || data.length === 0) {
     return <p className="p-6">No tournaments found</p>
+  }
+
+  const deleteTournament = async (id) => {
+    if (!confirm('Are you sure you want to delete this tournament?')) {
+      return
+    }
+
+    const { error } = await supabase
+      .from('tournaments')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      console.error(error)
+      alert('Error deleting tournament')
+    }
   }
 
   return (
@@ -41,6 +78,7 @@ export default async function TournamentsPage() {
                 <th className="px-4 py-3 text-left">Tournament</th>
                 <th className="px-4 py-3 text-left">Organizer</th>
                 <th className="px-4 py-3 text-left">Teams</th>
+                <th className="px-4 py-3 text-left">Actions</th>
             </tr>
             </thead>
 
@@ -90,6 +128,15 @@ export default async function TournamentsPage() {
                         </div>
                     ))}
                     </div>
+                </td>
+
+                {/* Actions */}
+                <td className="px-4 py-4">
+
+                    <button type="button" className="cursor-pointer bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded" onClick={() => deleteTournament(tournament.id)}>
+                        Delete
+                    </button>
+
                 </td>
 
                 </tr>
