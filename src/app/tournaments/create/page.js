@@ -13,6 +13,7 @@ export default function CreateTournamentPage() {
   const [team1Color, setTeam1Color] = useState("#FFB84D");
   const [team2Name, setTeam2Name] = useState("");
   const [team2Color, setTeam2Color] = useState("#B495FF");
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
@@ -24,6 +25,8 @@ export default function CreateTournamentPage() {
             alert("Please fill in all fields");
             return;
         }
+
+        setLoading(true)
         
         const tournamentData = {
             name: tournamentName,
@@ -50,6 +53,8 @@ export default function CreateTournamentPage() {
         } catch (err) {
           console.error(err)
         }
+
+        setLoading(false)
       }
 
   return (
@@ -62,7 +67,7 @@ export default function CreateTournamentPage() {
             Create Tournament
           </h1>
 
-          <button className="rounded-full text-white bg-blue-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-blue-500/25 transition hover:bg-blue-500" onClick={() => router.push('/tournaments/list')}>
+          <button className="rounded-full cursor-pointer text-white bg-blue-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-blue-500/25 transition hover:bg-blue-500" onClick={() => router.push('/tournaments/list')}>
             Back
           </button>
         </header>
@@ -193,9 +198,9 @@ export default function CreateTournamentPage() {
           {/* Submit */}
           <button
             type="submit"
-            className="rounded-2xl text-white bg-emerald-500 py-3 text-sm font-semibold shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400"
+            className="rounded-2xl cursor-pointer text-white bg-emerald-500 py-3 text-sm font-semibold shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400"
           >
-            Create Tournament
+            {loading ? 'Creating...' : 'Create Tournament'}
           </button>
         </form>
       </div>

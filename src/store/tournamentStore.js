@@ -3,8 +3,34 @@ import { supabase } from '@/lib/supabase'
 
 const tournamentStore = create((set, get) => ({
   tournaments: [],
+  currentTournament: null,
   loading: false,
   error: null,
+
+  updateScore: (teamIndex, newScore) =>
+    set((state) => ({
+      currentTournament: {
+        ...state.currentTournament,
+        teams: state.currentTournament.teams.map((team, i) =>
+          i === teamIndex
+            ? { ...team, score: newScore }
+            : team
+        ),
+      },
+    })),
+
+    updateWarning: (teamIndex, newWarning) =>
+      set((state) => ({
+        currentTournament: {
+          ...state.currentTournament,
+          teams: state.currentTournament.teams.map((team, i) =>
+            i === teamIndex
+              ? { ...team, warning: newWarning }
+              : team
+          ),
+        },
+      })),
+
 
   // READ
   fetchTournaments: async () => {
@@ -88,7 +114,66 @@ const tournamentStore = create((set, get) => ({
     } catch (err) {
       throw err
     }
-  }
+  },
+
+  // READ (single)
+  fetchTournamentById: async (id) => {
+    set({ loading: true, error: null })
+
+    try {
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select(`
+          *,
+          teams (*)
+        `)
+        .eq('id', id)
+        .order('id', { foreignTable: 'teams', ascending: true })
+        .single()
+
+      if (error) throw error
+
+      set({
+        currentTournament: data,
+        loading: false
+      })
+    } catch (err) {
+      set({
+        error: err.message,
+        loading: false
+      })
+    }
+  },
+
+  updateTournament: async () => {
+    try {
+      const { currentTournament } = get()
+
+      if (!currentTournament?.teams) return
+
+      const teamUpdates = currentTournament.teams.map(team => {
+        return supabase
+          .from('teams')
+          .update({
+            score: team.score,
+            warning: team.warning
+          })
+          .eq('id', team.id)
+      })
+
+      const results = await Promise.all(teamUpdates)
+
+      // optional: check for errors
+      results.forEach(({ error }) => {
+        if (error) throw error
+      })
+
+    } catch (err) {
+      console.error('Update failed:', err)
+      throw err
+    }
+  },
+  
 }))
 
 export default tournamentStore

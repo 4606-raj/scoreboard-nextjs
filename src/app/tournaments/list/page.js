@@ -1,5 +1,4 @@
 'use client'
-import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import useTournamentStore from '@/store/tournamentStore'
@@ -8,9 +7,10 @@ import PageLoader from '@/components/PageLoader'
 export default function TournamentsPage() {
 
     const [error, setError] = useState(null)
-
+    const [loadingId, setLoadingId] = useState(null)
+    
     const router = useRouter()
-    const { tournaments, fetchTournaments, deleteTournament } = useTournamentStore()
+    const { tournaments, fetchTournaments, deleteTournament, loading } = useTournamentStore()
     
     useEffect(() => {
       fetchTournaments()
@@ -22,7 +22,7 @@ export default function TournamentsPage() {
     return <p className="p-6">Error loading tournaments</p>
   }
 
-  if (!tournaments || tournaments.length === 0) {
+  if (loading) {
     return <PageLoader />
   }
 
@@ -31,11 +31,21 @@ export default function TournamentsPage() {
       return
     }
 
-    deleteTournament(id).catch(err => {
+    setLoadingId(id)
+
+    try {
+      await deleteTournament(id)
+    } catch (err) {
       console.error(err)
       alert('Failed to delete tournament')
-    })
+    } finally {
+      setLoadingId(null)
+    }
+  }
 
+  const openBoardHandler = (id) => {
+
+    router.push(`/board/${id}`)
   }
 
   return (
@@ -48,7 +58,7 @@ export default function TournamentsPage() {
       <button
         type="button"
         onClick={() => router.push('/tournaments/create')}
-        className="rounded-full text-white bg-blue-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-blue-500/25 transition hover:bg-blue-500"
+        className="rounded-full cursor-pointer text-white bg-blue-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-blue-500/25 transition hover:bg-blue-500"
       >
         + Add New
       </button>
@@ -56,7 +66,7 @@ export default function TournamentsPage() {
       <button
         type="button"
         onClick={() => {}}
-        className="rounded-full text-white bg-gray-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-gray-500/25 transition hover:bg-gray-500"
+        className="rounded-full cursor-pointer text-white bg-gray-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-gray-500/25 transition hover:bg-gray-500"
       >
         Logout
       </button>
@@ -80,6 +90,15 @@ export default function TournamentsPage() {
 
       {/* Body */}
       <tbody className="divide-y divide-gray-100">
+
+        {tournaments.length === 0 && (
+          <tr>
+            <td colSpan="5" className="px-5 py-4 text-center text-gray-500">
+              No tournaments found. Click <button onClick={() => router.push('/tournaments/create')} className="text-blue-500 cursor-pointer hover:text-blue-700">Add New</button> to create one.
+            </td>
+          </tr>
+        )}
+        
         {tournaments.map((tournament, index) => (
           <tr
             key={tournament.id}
@@ -128,13 +147,23 @@ export default function TournamentsPage() {
             </td>
 
             {/* Actions */}
-            <td className="px-5 py-4">
+            <td className="px-5 py-4 flex gap-4">
               <button
                 type="button"
+                disabled={loadingId === tournament.id}
                 onClick={() => deleteTournamentHandler(tournament.id)}
-                className="rounded-full text-white bg-red-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-red-500/25 transition hover:bg-red-500"
+                className={`rounded-full cursor-pointer text-white px-5 py-2.5 text-sm font-semibold shadow-lg transition 
+                  ${loadingId === tournament.id ? 'bg-red-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-500 shadow-red-500/25'}`}
               >
-                Delete
+                {loadingId === tournament.id ? 'Deleting...' : 'Delete'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => openBoardHandler(tournament.id)}
+                className="rounded-full cursor-pointer text-white bg-blue-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-blue-500/25 transition hover:bg-blue-500"
+              >
+                Open Board
               </button>
             </td>
           </tr>
