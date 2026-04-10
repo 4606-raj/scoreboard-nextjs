@@ -16,11 +16,11 @@ const formatTime = (totalSeconds) => {
 export default function BoardPage() {
   const params = useParams()
   const router = useRouter()
-  const { currentTournament, fetchTournamentById, updateTournament, updateScore, updateWarning, loading } = useTournamentStore()
+  const { currentTournament, fetchTournamentById, updateTournament, updateScore, updateWarning, updateTimer, loading } = useTournamentStore()
 
   const [timerVisible, setTimerVisible] = useState(true);
-  const [seconds, setSeconds] = useState(240);
-  const [running, setRunning] = useState(false);
+  const [seconds, setSeconds] = useState(currentTournament?.timer_position ?? 240);
+  const [running, setRunning] = useState(currentTournament?.timer_status ?? false);
   const [isloading, setIsLoading] = useState(loading)
   
   useEffect(() => {
@@ -47,20 +47,25 @@ export default function BoardPage() {
   }, [params.id, fetchTournamentById, router]);
   
   useEffect(() => {
+    updateTimer({status: running, position: seconds})
+    updateTournament()
+    
     if (!running) return;
 
     const interval = setInterval(() => {
+
       setSeconds((current) => {
         if (current <= 1) {
           setRunning(false);
+          updateTimer({status: false, position: seconds})
+          updateTournament()
           return 0;
         }
         return current - 1;
       });
     }, 1000);
-
     return () => clearInterval(interval);
-  }, [running]);
+  }, [running, updateTimer]);
   
   const changeLeft = (value) => updateScore(0, Math.max(0, currentTournament.teams[0].score + value));
   const changeRight = (value) => updateScore(1, Math.max(0, currentTournament.teams[1].score + value));

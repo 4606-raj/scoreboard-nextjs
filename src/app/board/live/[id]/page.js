@@ -19,8 +19,7 @@ export default function BoardLivePage() {
   const { currentTournament, fetchTournamentById, subscribeToTournament, loading } = useTournamentStore()
 
   const [timerVisible, setTimerVisible] = useState(true);
-  const [seconds, setSeconds] = useState(240);
-  const [running, setRunning] = useState(false);
+  // const [running, setRunning] = useState(false);
   
   useEffect(() => {
     if (!params.id) return;
@@ -33,7 +32,6 @@ export default function BoardLivePage() {
       })
 
       await subscribeToTournament(params.id)
-      
     }  
 
     loadCurrentTournament(params.id)
@@ -45,6 +43,11 @@ export default function BoardLivePage() {
 
   const teamAWarning = currentTournament?.teams?.[0]?.warning || 0
   const teamBWarning = currentTournament?.teams?.[1]?.warning || 0
+
+  const TimerPosition = currentTournament?.timer_position || 240
+  const running = currentTournament?.timer_status || false
+  const [seconds, setSeconds] = useState(TimerPosition || 240);
+
 
   
   // 2. Realtime subscription
