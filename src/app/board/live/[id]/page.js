@@ -43,6 +43,9 @@ export default function BoardLivePage() {
   const teamAScore = currentTournament?.teams?.[0]?.score || 0
   const teamBScore = currentTournament?.teams?.[1]?.score || 0
 
+  const teamAWarning = currentTournament?.teams?.[0]?.warning || 0
+  const teamBWarning = currentTournament?.teams?.[1]?.warning || 0
+
   
   // 2. Realtime subscription
   // useEffect(() => {
@@ -142,7 +145,7 @@ export default function BoardLivePage() {
                 <button
                   onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
-                    currentTournament && currentTournament.teams[0].warning === 1
+                    teamAWarning === 1
                       ? "bg-white/90 shadow-lg shadow-white/50"
                       : "bg-white/30"
                   }`}
@@ -151,7 +154,7 @@ export default function BoardLivePage() {
                 <button
                   onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
-                    currentTournament && currentTournament.teams[0].warning === 2
+                    teamAWarning === 2
                       ? "bg-cyan-400 shadow-lg shadow-cyan-400/70"
                       : "bg-cyan-400/30"
                   }`}
@@ -160,7 +163,7 @@ export default function BoardLivePage() {
                 <button
                   onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
-                    currentTournament && currentTournament.teams[0].warning === 3
+                    teamAWarning === 3
                       ? "bg-lime-400 shadow-lg shadow-lime-400/70"
                       : "bg-lime-400/30"
                   }`}
@@ -169,7 +172,7 @@ export default function BoardLivePage() {
                 <button
                   onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
-                    currentTournament && currentTournament.teams[0].warning === 4
+                    teamAWarning === 4
                       ? "bg-amber-400 shadow-lg shadow-amber-400/70"
                       : "bg-amber-400/30"
                   }`}
@@ -178,7 +181,7 @@ export default function BoardLivePage() {
                 <button
                   onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
-                    currentTournament && currentTournament.teams[0].warning === 5
+                    teamAWarning === 5
                       ? "bg-red-500 shadow-lg shadow-red-500/70"
                       : "bg-red-500/30"
                   }`}
@@ -214,7 +217,7 @@ export default function BoardLivePage() {
                 <button
                   onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
-                    currentTournament && currentTournament.teams[1].warning === 1
+                    teamBWarning === 1
                       ? "bg-white/90 shadow-lg shadow-white/50"
                       : "bg-white/30"
                   }`}
@@ -223,7 +226,7 @@ export default function BoardLivePage() {
                   <button
                     onClick={() => {}}
                     className={`flex-1 cursor-pointer h-3 rounded-full transition ${
-                      currentTournament && currentTournament.teams[1].warning === 2
+                      teamBWarning === 2
                         ? "bg-cyan-400 shadow-lg shadow-cyan-400/70"
                         : "bg-cyan-400/30"
                     }`}
@@ -232,7 +235,7 @@ export default function BoardLivePage() {
                 <button
                   onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
-                    currentTournament && currentTournament.teams[1].warning === 3
+                    teamBWarning === 3
                       ? "bg-lime-400 shadow-lg shadow-lime-400/70"
                       : "bg-lime-400/30"
                   }`}
@@ -241,7 +244,7 @@ export default function BoardLivePage() {
                 <button
                   onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
-                    currentTournament && currentTournament.teams[1].warning === 4
+                    teamBWarning === 4
                       ? "bg-amber-400 shadow-lg shadow-amber-400/70"
                       : "bg-amber-400/30"
                   }`}
@@ -250,7 +253,7 @@ export default function BoardLivePage() {
                 <button
                   onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
-                    currentTournament && currentTournament.teams[1].warning === 5
+                    teamBWarning === 5
                       ? "bg-red-500 shadow-lg shadow-red-500/70"
                       : "bg-red-500/30"
                   }`}

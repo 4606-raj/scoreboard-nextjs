@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import useTournamentStore from '@/store/tournamentStore'
 import PageLoader from '@/components/PageLoader'
+import { toast } from 'react-toastify'
 
 export default function TournamentsPage() {
 
@@ -35,9 +36,10 @@ export default function TournamentsPage() {
 
     try {
       await deleteTournament(id)
+      toast.success('Deleted')
     } catch (err) {
       console.error(err)
-      alert('Failed to delete tournament')
+      toast.error('Failed to delete tournament')
     } finally {
       setLoadingId(null)
     }
@@ -163,7 +165,15 @@ export default function TournamentsPage() {
                 onClick={() => openBoardHandler(tournament.id)}
                 className="rounded-full cursor-pointer text-white bg-blue-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-blue-500/25 transition hover:bg-blue-500"
               >
-                Open Board
+                Operate Board
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push(`/board/live/${tournament.id}`)}
+                className="rounded-full cursor-pointer text-white bg-blue-600 px-5 py-2.5 text-sm font-semibold shadow-lg shadow-blue-500/25 transition hover:bg-blue-500"
+              >
+                Open Live Board
               </button>
             </td>
           </tr>

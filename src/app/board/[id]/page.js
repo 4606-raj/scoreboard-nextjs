@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import useTournamentStore from '@/store/tournamentStore'
 import { useRouter } from "next/navigation";
 import PageLoader from "@/components/PageLoader";
+import { toast } from "react-toastify";
 
 const formatTime = (totalSeconds) => {
   const minutes = Math.floor(totalSeconds / 60);
@@ -36,7 +37,7 @@ export default function BoardPage() {
       })
       .catch(err => {
         console.error(err)
-        alert('Failed to load tournament details')
+        toast.error('Failed to load tournament details')
         router.push('/tournaments/list')
       })
     }  
@@ -71,10 +72,11 @@ export default function BoardPage() {
     setIsLoading(true)
     try {
       await updateTournament()
-      alert('Tournament updated successfully')
+      // alert('Tournament updated successfully')
+      toast.success("Updated");
     } catch (err) {
       console.error(err)
-      alert('Failed to update tournament')
+      toast.error('Failed to update tournament')
     } finally {
       setIsLoading(false)
     }

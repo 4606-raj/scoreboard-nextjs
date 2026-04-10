@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ProtectedRoute from '@/components/ProtectedRoute'
+import ToastProvider from "./app/providers/ToastProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,7 +22,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
         <body className="min-h-full flex flex-col">
           <ProtectedRoute>
-            {children}
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </ProtectedRoute>
         </body>
     </html>
