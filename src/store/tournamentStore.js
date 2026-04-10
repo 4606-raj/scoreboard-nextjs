@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
 
+let tournamentChannel = null
+
 const tournamentStore = create((set, get) => ({
   tournaments: [],
   currentTournament: null,
@@ -144,6 +146,48 @@ const tournamentStore = create((set, get) => ({
       })
     }
   },
+
+  subscribeToTournament: (id) => {
+
+  // cleanup old channel properly
+  if (tournamentChannel) {
+    supabase.removeChannel(tournamentChannel)
+    tournamentChannel = null
+  }
+
+  tournamentChannel = supabase
+    .channel('tournament-live')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'teams',
+        filter: `tournament_id=eq.${id}`,
+      },
+      (payload) => {
+        console.log('🔥 realtime update:', payload)
+
+        const current = get().currentTournament
+        if (!current?.teams) return
+
+        const updatedTeams = current.teams.map((team) =>
+          team.id === payload.new.id
+            ? payload.new
+            : team
+        )
+
+        set({
+          currentTournament: {
+            ...current,
+            teams: updatedTeams,
+          },
+        })
+      }
+    )
+    .subscribe()
+},
+
 
   updateTournament: async () => {
     try {

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import useTournamentStore from '@/store/tournamentStore'
 import { useRouter } from "next/navigation";
 import PageLoader from "@/components/PageLoader";
+import { supabase } from "@/lib/supabase";
 
 const formatTime = (totalSeconds) => {
   const minutes = Math.floor(totalSeconds / 60);
@@ -12,38 +13,70 @@ const formatTime = (totalSeconds) => {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 };
 
-export default function BoardPage() {
+export default function BoardLivePage() {
   const params = useParams()
   const router = useRouter()
-  const { currentTournament, fetchTournamentById, updateTournament, updateScore, updateWarning, loading } = useTournamentStore()
+  const { currentTournament, fetchTournamentById, subscribeToTournament, loading } = useTournamentStore()
 
   const [timerVisible, setTimerVisible] = useState(true);
   const [seconds, setSeconds] = useState(240);
   const [running, setRunning] = useState(false);
-  const [isloading, setIsLoading] = useState(loading)
   
   useEffect(() => {
     if (!params.id) return;
 
     async function loadCurrentTournament(id) {
       await fetchTournamentById(id)
-      .then(() => {
-        setIsLoading(false)
-        // if(!currentTournament) {
-        //   alert('Tournament not found')
-        //   router.push('/tournaments/list')
-        // }
-      })
       .catch(err => {
         console.error(err)
         alert('Failed to load tournament details')
-        router.push('/tournaments/list')
       })
+
+      await subscribeToTournament(params.id)
+      
     }  
 
     loadCurrentTournament(params.id)
     
-  }, [params.id, fetchTournamentById, router]);
+  }, [params.id, fetchTournamentById, subscribeToTournament, router]);
+
+  const teamAScore = currentTournament?.teams?.[0]?.score || 0
+  const teamBScore = currentTournament?.teams?.[1]?.score || 0
+
+  
+  // 2. Realtime subscription
+  // useEffect(() => {
+  //   const channel = supabase
+  //     .channel('teams-realtime')
+  //     .on(
+  //       'postgres_changes',
+  //       {
+  //         event: '*',
+  //         schema: 'public',
+  //         table: 'teams',
+  //       },
+  //       (payload) => {
+
+  //         if(payload.new.id === currentTournament?.teams[0].id) {
+  //           setTeamA(payload.new)
+  //         }
+          
+  //         if(payload.new.id === currentTournament?.teams[1].id) {
+  //           setTeamB(payload.new)
+  //         }
+          
+  //         console.log('🔥 Change received!', payload.new.id, teamA?.id ?? 'NA')
+  //       }
+  //     )
+  //     .subscribe((status) => {
+  //       console.log('SUB STATUS:', status)
+  //     })
+
+
+  //   return () => {
+  //     supabase.removeChannel(channel)
+  //   }
+  // }, [])
   
   useEffect(() => {
     if (!running) return;
@@ -60,25 +93,6 @@ export default function BoardPage() {
 
     return () => clearInterval(interval);
   }, [running]);
-  
-  const changeLeft = (value) => updateScore(0, Math.max(0, currentTournament.teams[0].score + value));
-  const changeRight = (value) => updateScore(1, Math.max(0, currentTournament.teams[1].score + value));
-
-  const changeLeftWarning = (value) => updateWarning(0, value);
-  const changeRightWarning = (value) => updateWarning(1, value);
-
-  const updateHandler = async () => {
-    setIsLoading(true)
-    try {
-      await updateTournament()
-      alert('Tournament updated successfully')
-    } catch (err) {
-      console.error(err)
-      alert('Failed to update tournament')
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   if (loading) {
     return <PageLoader />
@@ -87,14 +101,6 @@ export default function BoardPage() {
   return (
     <main className="min-h-screen bg-[#050505] text-slate-100">
       <div className="mx-auto flex min-h-screen flex-col gap-10 px-6 py-7 sm:px-10">
-        <header className="flex items-center justify-between rounded-3xl border border-white/10 bg-white/5 px-5 py-4 shadow-[0_20px_80px_-32px_rgba(255,255,255,0.25)] backdrop-blur-xl">
-          <button onClick={() => router.push(`/tournaments/list`)} className="inline-flex cursor-pointer items-center justify-center rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-500">
-            Dashboard
-          </button>
-          <button onClick={updateHandler} className="inline-flex cursor-pointer items-center justify-center rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400">
-            {isloading? 'Updateing...' : 'Update'}
-          </button>
-        </header>
 
         <section className="flex flex-col items-center gap-4 text-center">
           <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
@@ -114,27 +120,7 @@ export default function BoardPage() {
           {/* Left Board with corner buttons */}
           <div className="grid gap-4 grid-cols-[auto_1fr_auto]">
             {/* Top left corner buttons */}
-            <div className="flex flex-col justify-between">
-              <button
-                onClick={() => changeLeft(2)}
-                className="cursor-pointer rounded-3xl px-5 py-4 text-lg font-semibold text-slate-950 transition hover:opacity-90"
-                style={{
-                  backgroundColor: currentTournament?.teams?.[0]?.color || 'red'
-                }}
-              >
-                +2
-              </button>
-              <button
-                onClick={() => changeLeft(3)}
-                aria-label="Left +2"
-                className="cursor-pointer rounded-3xl px-5 py-4 text-lg font-semibold text-slate-950 transition hover:opacity-90"
-                style={{
-                  backgroundColor: currentTournament?.teams?.[0]?.color || 'red'
-                }}
-              >
-                +3
-              </button>
-            </div>
+            <div className="flex flex-col justify-between"></div>
 
             {/* Left score panel with warning bars below */}
             <div className="flex flex-col gap-4">
@@ -142,31 +128,19 @@ export default function BoardPage() {
                 <div className="mb-5 text-center">
                   <p className="text-2xl font-semibold text-white">{currentTournament ? currentTournament.teams[0].name : "Team Name"}</p>
                 </div>
-                <div className="flex items-center justify-between gap-4 rounded-[2rem] bg-black/15 p-5">
-                  <button
-                    onClick={() => changeLeft(-1)}
-                    className="flex cursor-pointer h-14 w-14 items-center justify-center rounded-3xl border border-white/10 bg-black/20 text-2xl text-white transition hover:bg-black/30"
-                  >
-                    −
-                  </button>
+                <div className="flex items-center justify-center gap-4 rounded-[2rem] bg-black/15 p-5">
                   <div className="min-w-[160px] text-center">
                     <p className="text-7xl font-extrabold tracking-[0.3rem] text-white">
-                      { currentTournament?.teams[0].score ?? 0 }
+                      { teamAScore }
                     </p>
                   </div>
-                  <button
-                    onClick={() => changeLeft(1)}
-                    className="flex cursor-pointer h-14 w-14 items-center justify-center rounded-3xl border border-white/10 bg-black/20 text-3xl text-white transition hover:bg-black/30"
-                  >
-                    +
-                  </button>
                 </div>
               </article>
 
               {/* Warning level indicators - glow when clicked */}
               <div className="flex gap-3 rounded-3xl p-4">
                 <button
-                  onClick={() => changeLeftWarning(1)}
+                  onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
                     currentTournament && currentTournament.teams[0].warning === 1
                       ? "bg-white/90 shadow-lg shadow-white/50"
@@ -175,7 +149,7 @@ export default function BoardPage() {
                   aria-label="Left warning level 1"
                 />
                 <button
-                  onClick={() => changeLeftWarning(2)}
+                  onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
                     currentTournament && currentTournament.teams[0].warning === 2
                       ? "bg-cyan-400 shadow-lg shadow-cyan-400/70"
@@ -184,7 +158,7 @@ export default function BoardPage() {
                   aria-label="Left warning level 2"
                 />
                 <button
-                  onClick={() => changeLeftWarning(3)}
+                  onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
                     currentTournament && currentTournament.teams[0].warning === 3
                       ? "bg-lime-400 shadow-lg shadow-lime-400/70"
@@ -193,7 +167,7 @@ export default function BoardPage() {
                   aria-label="Left warning level 3"
                 />
                 <button
-                  onClick={() => changeLeftWarning(4)}
+                  onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
                     currentTournament && currentTournament.teams[0].warning === 4
                       ? "bg-amber-400 shadow-lg shadow-amber-400/70"
@@ -202,7 +176,7 @@ export default function BoardPage() {
                   aria-label="Left warning level 4"
                 />
                 <button
-                  onClick={() => changeLeftWarning(5)}
+                  onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
                     currentTournament && currentTournament.teams[0].warning === 5
                       ? "bg-red-500 shadow-lg shadow-red-500/70"
@@ -213,86 +187,32 @@ export default function BoardPage() {
               </div>
             </div>
 
-            {/* Top right corner buttons */}
-            <div className="flex flex-col justify-between">
-              <button
-                onClick={() => changeLeft(-2)}
-                className="cursor-pointer rounded-3xl px-5 py-4 text-lg font-semibold text-slate-950 transition hover:opacity-90"
-                style={{
-                  backgroundColor: currentTournament?.teams?.[0]?.color || 'red'
-                }}
-              >
-                -2
-              </button>
-              <button
-                onClick={() => changeLeft(-3)}
-                aria-label="Left -3"
-                className="cursor-pointer rounded-3xl px-5 py-4 text-lg font-semibold text-slate-950 transition hover:opacity-90"
-                style={{
-                  backgroundColor: currentTournament?.teams?.[0]?.color || 'red'
-                }}
-              >
-                -3
-              </button>
-            </div>
           </div>
 
           {/* Right Board with corner buttons */}
           <div className="grid gap-4 grid-cols-[auto_1fr_auto]">
             {/* Top left corner buttons */}
-            <div className="flex flex-col justify-between">
-              <button
-                onClick={() => changeRight(-2)}
-                className="cursor-pointer rounded-3xl px-5 py-4 text-lg font-semibold text-slate-950 transition hover:opacity-90"
-                style={{
-                  backgroundColor: currentTournament?.teams?.[1]?.color || 'lightgreen'
-                }}
-              >
-                -2
-              </button>
-              <button
-                onClick={() => changeRight(-3)}
-                aria-label="Right -3"
-                className="cursor-pointer rounded-3xl px-5 py-4 text-lg font-semibold text-slate-950 transition hover:opacity-90"
-                style={{
-                  backgroundColor: currentTournament?.teams?.[1]?.color || 'lightgreen'
-                }}
-              >
-                -3
-              </button>
-            </div>
+            <div className="flex flex-col justify-between"></div>
 
             {/* Right score panel with warning bars below */}
             <div className="flex flex-col gap-4">
               <article className="rounded-[2.5rem] border border-white/10 p-6 shadow-2xl shadow-black/30" style={{ backgroundColor: currentTournament?.teams?.[1]?.color || 'lightgreen' }}>
                 <div className="mb-5 text-center">
-                  <p className="text-2xl font-semibold text-slate-950">{currentTournament ? currentTournament.teams[1].name ?? 0 : 0}</p>
+                  <p className="text-2xl font-semibold text-slate-950">{currentTournament ? currentTournament.teams[1].name : "Team Name"}</p>
                 </div>
-                <div className="flex items-center justify-between gap-4 rounded-[2rem] bg-black/15 p-5">
-                  <button
-                    onClick={() => changeRight(-1)}
-                    className="flex cursor-pointer h-14 w-14 items-center justify-center rounded-3xl border border-white/10 bg-black/20 text-2xl text-white transition hover:bg-black/30"
-                  >
-                    −
-                  </button>
+                <div className="flex items-center justify-center gap-4 rounded-[2rem] bg-black/15 p-5">
                   <div className="min-w-[160px] text-center">
                     <p className="text-7xl font-extrabold tracking-[0.3rem] text-white">
-                      { currentTournament?.teams[1].score ?? 0 }
+                      { teamBScore }
                     </p>
                   </div>
-                  <button
-                    onClick={() => changeRight(1)}
-                    className="flex cursor-pointer h-14 w-14 items-center justify-center rounded-3xl border border-white/10 bg-black/20 text-3xl text-white transition hover:bg-black/30"
-                  >
-                    +
-                  </button>
                 </div>
               </article>
 
               {/* Warning level indicators - glow when clicked */}
               <div className="flex gap-3 rounded-3xl p-4">
                 <button
-                  onClick={() => changeRightWarning(1)}
+                  onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
                     currentTournament && currentTournament.teams[1].warning === 1
                       ? "bg-white/90 shadow-lg shadow-white/50"
@@ -301,7 +221,7 @@ export default function BoardPage() {
                   aria-label="Right warning level 1"
                 />
                   <button
-                    onClick={() => changeRightWarning(2)}
+                    onClick={() => {}}
                     className={`flex-1 cursor-pointer h-3 rounded-full transition ${
                       currentTournament && currentTournament.teams[1].warning === 2
                         ? "bg-cyan-400 shadow-lg shadow-cyan-400/70"
@@ -310,7 +230,7 @@ export default function BoardPage() {
                     aria-label="Right warning level 2"
                 />
                 <button
-                  onClick={() => changeRightWarning(3)}
+                  onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
                     currentTournament && currentTournament.teams[1].warning === 3
                       ? "bg-lime-400 shadow-lg shadow-lime-400/70"
@@ -319,7 +239,7 @@ export default function BoardPage() {
                   aria-label="Right warning level 3"
                 />
                 <button
-                  onClick={() => changeRightWarning(4)}
+                  onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
                     currentTournament && currentTournament.teams[1].warning === 4
                       ? "bg-amber-400 shadow-lg shadow-amber-400/70"
@@ -328,7 +248,7 @@ export default function BoardPage() {
                   aria-label="Right warning level 4"
                 />
                 <button
-                  onClick={() => changeRightWarning(5)}
+                  onClick={() => {}}
                   className={`flex-1 cursor-pointer h-3 rounded-full transition ${
                     currentTournament && currentTournament.teams[1].warning === 5
                       ? "bg-red-500 shadow-lg shadow-red-500/70"
@@ -337,29 +257,6 @@ export default function BoardPage() {
                   aria-label="Right warning level 5"
                 />
               </div>
-            </div>
-
-            {/* Top right corner buttons */}
-            <div className="flex flex-col justify-between">
-              <button
-                onClick={() => changeRight(2)}
-                className="cursor-pointer rounded-3xl px-5 py-4 text-lg font-semibold text-slate-950 transition hover:opacity-90"
-                style={{
-                  backgroundColor: currentTournament?.teams?.[1]?.color || 'lightgreen'
-                }}
-              >
-                +2
-              </button>
-              <button
-                onClick={() => changeRight(3)}
-                aria-label="Right 3"
-                className="cursor-pointer rounded-3xl px-5 py-4 text-lg font-semibold text-slate-950 transition hover:opacity-90"
-                style={{
-                  backgroundColor: currentTournament?.teams?.[1]?.color || 'lightgreen'
-                }}
-              >
-                +3
-              </button>
             </div>
           </div>
         </section>
@@ -372,29 +269,6 @@ export default function BoardPage() {
               </span>
             </div>
           )}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-            <button
-              onClick={() => setRunning((current) => !current)}
-              className="cursor-pointer rounded-3xl bg-slate-700/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-600"
-            >
-              {running ? "Pause" : "Start"}
-            </button>
-            <button
-              onClick={() => setTimerVisible((current) => !current)}
-              className="cursor-pointer rounded-3xl bg-slate-700/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-600"
-            >
-              👁️
-            </button>
-            <button
-              onClick={() => {
-                setRunning(false);
-                setSeconds(240);
-              }}
-              className="cursor-pointer rounded-3xl bg-slate-700/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-600"
-            >
-              Reset
-            </button>
-          </div>
         </section>
       </div>
     </main>

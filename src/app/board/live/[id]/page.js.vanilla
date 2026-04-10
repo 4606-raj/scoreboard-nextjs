@@ -1,0 +1,40 @@
+'use client'
+import { useEffect } from 'react'
+import { supabase } from '@/lib/supabase'
+
+export default function LivePage() {
+
+  useEffect(() => {
+
+    const channel = supabase
+      .channel('teams-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'teams',
+        },
+        (payload) => {
+          console.log('🔥 Change received!', payload)
+
+          setTeamAScore()
+        }
+      )
+      .subscribe((status) => {
+        console.log('SUB STATUS:', status)
+      })
+
+      window.supabase = supabase
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  return (
+    <div>
+      <h1>Live Scores</h1>
+    </div>
+  )
+}
