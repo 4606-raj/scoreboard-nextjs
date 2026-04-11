@@ -94,14 +94,13 @@ export default function BoardLivePage() {
       resetTimer()
     }
 
-    if (!running) {
-      return;
-    }
+    if (!running) return;
 
     const interval = setInterval(() => {
       setSeconds((current) => {
         if (current <= 1) {
           // setRunning(false);
+          setSeconds(TimerPosition || 240)
           return 0;
         }
         return current - 1;
@@ -158,7 +157,7 @@ export default function BoardLivePage() {
               <div className="flex gap-3 rounded-3xl p-4">
                 <button
                   onClick={() => {}}
-                  className={`flex-1 cursor-pointer h-3 rounded-full transition ${
+                  className={`flex-1 h-3 rounded-full transition ${
                     teamAWarning === 1
                       ? "bg-white/90 shadow-lg shadow-white/50"
                       : "bg-white/30"
@@ -167,7 +166,7 @@ export default function BoardLivePage() {
                 />
                 <button
                   onClick={() => {}}
-                  className={`flex-1 cursor-pointer h-3 rounded-full transition ${
+                  className={`flex-1 h-3 rounded-full transition ${
                     teamAWarning === 2
                       ? "bg-cyan-400 shadow-lg shadow-cyan-400/70"
                       : "bg-cyan-400/30"
@@ -176,7 +175,7 @@ export default function BoardLivePage() {
                 />
                 <button
                   onClick={() => {}}
-                  className={`flex-1 cursor-pointer h-3 rounded-full transition ${
+                  className={`flex-1 h-3 rounded-full transition ${
                     teamAWarning === 3
                       ? "bg-lime-400 shadow-lg shadow-lime-400/70"
                       : "bg-lime-400/30"
@@ -185,7 +184,7 @@ export default function BoardLivePage() {
                 />
                 <button
                   onClick={() => {}}
-                  className={`flex-1 cursor-pointer h-3 rounded-full transition ${
+                  className={`flex-1 h-3 rounded-full transition ${
                     teamAWarning === 4
                       ? "bg-amber-400 shadow-lg shadow-amber-400/70"
                       : "bg-amber-400/30"
@@ -194,7 +193,7 @@ export default function BoardLivePage() {
                 />
                 <button
                   onClick={() => {}}
-                  className={`flex-1 cursor-pointer h-3 rounded-full transition ${
+                  className={`flex-1 h-3 rounded-full transition ${
                     teamAWarning === 5
                       ? "bg-red-500 shadow-lg shadow-red-500/70"
                       : "bg-red-500/30"
@@ -230,7 +229,7 @@ export default function BoardLivePage() {
               <div className="flex gap-3 rounded-3xl p-4">
                 <button
                   onClick={() => {}}
-                  className={`flex-1 cursor-pointer h-3 rounded-full transition ${
+                  className={`flex-1 h-3 rounded-full transition ${
                     teamBWarning === 1
                       ? "bg-white/90 shadow-lg shadow-white/50"
                       : "bg-white/30"
@@ -239,7 +238,7 @@ export default function BoardLivePage() {
                 />
                   <button
                     onClick={() => {}}
-                    className={`flex-1 cursor-pointer h-3 rounded-full transition ${
+                    className={`flex-1 h-3 rounded-full transition ${
                       teamBWarning === 2
                         ? "bg-cyan-400 shadow-lg shadow-cyan-400/70"
                         : "bg-cyan-400/30"
@@ -248,7 +247,7 @@ export default function BoardLivePage() {
                 />
                 <button
                   onClick={() => {}}
-                  className={`flex-1 cursor-pointer h-3 rounded-full transition ${
+                  className={`flex-1 h-3 rounded-full transition ${
                     teamBWarning === 3
                       ? "bg-lime-400 shadow-lg shadow-lime-400/70"
                       : "bg-lime-400/30"
@@ -257,7 +256,7 @@ export default function BoardLivePage() {
                 />
                 <button
                   onClick={() => {}}
-                  className={`flex-1 cursor-pointer h-3 rounded-full transition ${
+                  className={`flex-1 h-3 rounded-full transition ${
                     teamBWarning === 4
                       ? "bg-amber-400 shadow-lg shadow-amber-400/70"
                       : "bg-amber-400/30"
@@ -266,7 +265,7 @@ export default function BoardLivePage() {
                 />
                 <button
                   onClick={() => {}}
-                  className={`flex-1 cursor-pointer h-3 rounded-full transition ${
+                  className={`flex-1 h-3 rounded-full transition ${
                     teamBWarning === 5
                       ? "bg-red-500 shadow-lg shadow-red-500/70"
                       : "bg-red-500/30"
