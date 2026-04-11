@@ -6,6 +6,7 @@ import useTournamentStore from '@/store/tournamentStore'
 import { useRouter } from "next/navigation";
 import PageLoader from "@/components/PageLoader";
 import { toast } from "react-toastify";
+import { Tooltip } from "react-tooltip";
 
 const formatTime = (totalSeconds) => {
   const minutes = Math.floor(totalSeconds / 60);
@@ -47,7 +48,7 @@ export default function BoardPage() {
   }, [params.id, fetchTournamentById, router]);
   
   useEffect(() => {
-    updateTimer({status: running, position: seconds})
+    updateTimer({status: running, position: seconds, timer_visibility: timerVisible})
     updateTournament()
     
     if (!running) return;
@@ -57,14 +58,20 @@ export default function BoardPage() {
       setSeconds((current) => {
         if (current <= 1) {
           setRunning(false);
-          updateTimer({status: false, position: seconds})
+          
+          if(current > 1) {
+            updateTimer({status: false, position: seconds, timer_visibility: timerVisible})
+          }
+          
           updateTournament()
           return 0;
         }
         return current - 1;
       });
     }, 1000);
-    return () => clearInterval(interval);
+    
+    return () => {
+      clearInterval(interval)};
   }, [running, updateTimer]);
   
   const changeLeft = (value) => updateScore(0, Math.max(0, currentTournament.teams[0].score + value));
@@ -95,12 +102,21 @@ export default function BoardPage() {
     <main className="min-h-screen bg-[#050505] text-slate-100">
       <div className="mx-auto flex min-h-screen flex-col gap-10 px-6 py-7 sm:px-10">
         <header className="flex items-center justify-between rounded-3xl border border-white/10 bg-white/5 px-5 py-4 shadow-[0_20px_80px_-32px_rgba(255,255,255,0.25)] backdrop-blur-xl">
-          <button onClick={() => router.push(`/tournaments/list`)} className="inline-flex cursor-pointer items-center justify-center rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-500">
-            Dashboard
-          </button>
+
+          <div className="flex gap-4">
+            <button onClick={() => router.push(`/tournaments/list`)} className="inline-flex cursor-pointer items-center justify-center rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-500">
+              Dashboard
+            </button>
+
+            <button onClick={() => window.open(`/board/live/${params.id}`, '_blank', 'width=1000,height=700,noopener,noreferrer')} className="inline-flex cursor-pointer items-center justify-center rounded-full bg-yellow-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-yellow-500/25 transition hover:bg-yellow-400">
+              {'Open Live Board'}
+            </button>
+          </div>
+
           <button onClick={updateHandler} className="inline-flex cursor-pointer items-center justify-center rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400">
             {isloading? 'Updateing...' : 'Update'}
           </button>
+          
         </header>
 
         <section className="flex flex-col items-center gap-4 text-center">
@@ -386,21 +402,32 @@ export default function BoardPage() {
             >
               {running ? "Pause" : "Start"}
             </button>
-            <button
-              onClick={() => setTimerVisible((current) => !current)}
+            {/* <button
+              onClick={() => {
+                setTimerVisible((current) => !current)
+                updateTournament()
+              }}
               className="cursor-pointer rounded-3xl bg-slate-700/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-600"
             >
               👁️
-            </button>
+            </button> */}
             <button
               onClick={() => {
                 setRunning(false);
                 setSeconds(240);
+                updateTournament()
               }}
-              className="cursor-pointer rounded-3xl bg-slate-700/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-600"
+              // disabled={running}
+              // data-tooltip-id="tooltip" 
+              // data-tooltip-content={running? "Can't Reset When Timer is Paused": ""}
+              className={`rounded-3xl bg-slate-700/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-600 
+                ${running ? "cursor-not-allowed1" : "cursor-pointer"}
+                `}
             >
               Reset
             </button>
+
+            <Tooltip id="tooltip" />
           </div>
         </section>
       </div>

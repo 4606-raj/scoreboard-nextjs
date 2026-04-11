@@ -17,10 +17,9 @@ export default function BoardLivePage() {
   const params = useParams()
   const router = useRouter()
   const { currentTournament, fetchTournamentById, subscribeToTournament, loading } = useTournamentStore()
-
   const [timerVisible, setTimerVisible] = useState(true);
+
   // const [running, setRunning] = useState(false);
-  
   useEffect(() => {
     if (!params.id) return;
 
@@ -46,6 +45,7 @@ export default function BoardLivePage() {
 
   const TimerPosition = currentTournament?.timer_position || 240
   const running = currentTournament?.timer_status || false
+  
   const [seconds, setSeconds] = useState(TimerPosition || 240);
 
 
@@ -85,12 +85,23 @@ export default function BoardLivePage() {
   // }, [])
   
   useEffect(() => {
-    if (!running) return;
+    
+    const resetTimer = () => {
+      setSeconds(TimerPosition || 240)
+    }
+    
+    if(TimerPosition !== 0) {
+      resetTimer()
+    }
+
+    if (!running) {
+      return;
+    }
 
     const interval = setInterval(() => {
       setSeconds((current) => {
         if (current <= 1) {
-          setRunning(false);
+          // setRunning(false);
           return 0;
         }
         return current - 1;
@@ -275,6 +286,18 @@ export default function BoardLivePage() {
               </span>
             </div>
           )}
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+            <button
+              onClick={() => {
+                setTimerVisible((timerVisible) => !timerVisible)
+              }}
+              className="cursor-pointer rounded-3xl bg-slate-700/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-600"
+            >
+              {timerVisible? 'Hide': 'Show'}
+            </button>
+            </div>
+          
         </section>
       </div>
     </main>

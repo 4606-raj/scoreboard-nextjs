@@ -33,14 +33,15 @@ const tournamentStore = create((set, get) => ({
         },
       })),
 
-      updateTimer: ({status, position}) =>
+      updateTimer: ({status, position, timer_visibility}) =>
         set((state) => ({
-        currentTournament: {
-          ...state.currentTournament,
-          timer_status: status,
-          timer_position: position
-        }
-      })),
+          currentTournament: {
+            ...state.currentTournament,
+            timer_status: status,
+            timer_position: position,
+            timer_visibility: timer_visibility
+          }
+        })),
 
 
   // READ
@@ -230,6 +231,8 @@ const tournamentStore = create((set, get) => ({
         .update({
           timer_status: currentTournament.timer_status,
           timer_position: currentTournament.timer_position,
+          timer_visibility: currentTournament.timer_visibility,
+          
         })
         .eq('id', currentTournament.id);
 
