@@ -74,8 +74,14 @@ export default function BoardPage() {
       clearInterval(interval)};
   }, [running, updateTimer]);
   
-  const changeLeft = (value) => updateScore(0, Math.max(0, currentTournament.teams[0].score + value));
-  const changeRight = (value) => updateScore(1, Math.max(0, currentTournament.teams[1].score + value));
+  const changeLeft = (value) => {
+    updateScore(0, Math.max(0, currentTournament.teams[0].score + value));
+    updateTournament();
+  }
+  const changeRight = (value) => {
+    updateScore(1, Math.max(0, currentTournament.teams[1].score + value));
+    updateTournament();
+  }
 
   const changeLeftWarning = (value) => updateWarning(0, value);
   const changeRightWarning = (value) => updateWarning(1, value);
