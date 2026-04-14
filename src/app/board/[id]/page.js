@@ -393,49 +393,7 @@ export default function BoardPage() {
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-xl rounded-[2.5rem] border border-white/10 bg-white/5 p-7 text-center shadow-[0_30px_80px_-42px_rgba(255,255,255,0.18)] backdrop-blur-xl">
-          {timerVisible && (
-            <div className="mt-6 flex items-center justify-center rounded-[2rem] bg-black/30 p-6">
-              <span className="font-mono text-[4.5rem] font-semibold tracking-[0.18em] text-white">
-                {formatTime(seconds)}
-              </span>
-            </div>
-          )}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-            <button
-              onClick={() => setRunning((current) => !current)}
-              className="cursor-pointer rounded-3xl bg-slate-700/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-600"
-            >
-              {running ? "Pause" : "Start"}
-            </button>
-            {/* <button
-              onClick={() => {
-                setTimerVisible((current) => !current)
-                updateTournament()
-              }}
-              className="cursor-pointer rounded-3xl bg-slate-700/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-600"
-            >
-              👁️
-            </button> */}
-            <button
-              onClick={() => {
-                setRunning(false);
-                setSeconds(240);
-                updateTournament()
-              }}
-              // disabled={running}
-              // data-tooltip-id="tooltip" 
-              // data-tooltip-content={running? "Can't Reset When Timer is Paused": ""}
-              className={`rounded-3xl bg-slate-700/90 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-600 
-                ${running ? "cursor-not-allowed1" : "cursor-pointer"}
-                `}
-            >
-              Reset
-            </button>
-
-            <Tooltip id="tooltip" />
-          </div>
-        </section>
+        
       </div>
     </main>
   );                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
